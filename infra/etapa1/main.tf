@@ -1,0 +1,22 @@
+terraform {
+  required_providers {
+    aws={
+        source = "hashicorp/aws"
+        version = "~> 5.0"
+    }
+  }
+}
+
+provider "aws" {
+  region = var.aws_region
+}
+
+#ECR
+resource "aws_ecr_repository" "backend" {
+  name = "${var.project_name}-backend"
+  force_delete = true
+}
+resource "aws_ecr_repository" "frontend" {
+    name = "${var.project_name}-frontend"
+    force_delete = true
+}
