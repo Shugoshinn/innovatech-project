@@ -1,7 +1,7 @@
-frontend:
-    build: ./front_despacho
-    image: 905418066245.dkr.ecr.us-east-1.amazonaws.com/devops-u2-frontend
-    ports:
-      - "3000:80"
-    environment:
-      - BACKEND_IP=${EC2_BACKEND_PRIVATE_IP}
+services:
+  frontend:
+      image: 905418066245.dkr.ecr.us-east-1.amazonaws.com/devops-u2-frontend:latest
+      ports:
+        - "80:80"
+      environment:
+        - BACKEND_IP=${EC2_BACKEND_PRIVATE_IP}
