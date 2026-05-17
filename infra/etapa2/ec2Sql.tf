@@ -43,7 +43,7 @@ resource "aws_instance" "db" {
     docker run -d \
     --name mysql \
     -e MYSQL_ROOT_PASSWORD=root \
-    -e MYSQL_DATABASE=asistencia_db \
+    -e MYSQL_DATABASE=innovatech_db \
     -e MYSQL_ROOT_HOST=% \
     -p 3306:3306 \
     --log-opt max-size=10m \

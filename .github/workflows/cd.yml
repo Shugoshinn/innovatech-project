@@ -36,18 +36,25 @@ jobs:
         id: login-ecr
         uses: aws-actions/amazon-ecr-login@v2
       
-      - name: Build y Push del backend
+      - name: Build y Push del backend de ventas
         run: |
           docker build --platform linux/amd64 \
           -t ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ env.AWS_REGION }}.amazonaws.com/devops-u2-backend:latest \
-          ./backend
+          ./back-Ventas_SpringBoot/SpringBoot-API-REST
           docker push ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ env.AWS_REGION }}.amazonaws.com/devops-u2-backend:latest
-      
+
+      - name: Build y Push del backend de despachos
+        run: |
+          docker build --platform linux/amd64 \
+          -t ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ env.AWS_REGION }}.amazonaws.com/devops-u2-backend:latest \
+          ./back-Despachos_SpringBoot/Springboot-API-REST-DESPACHOS
+          docker push ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ env.AWS_REGION }}.amazonaws.com/devops-u2-backend:latest
+
       - name: Build y Push del frontend
         run: |
           docker build --platform linux/amd64 \
           -t ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ env.AWS_REGION }}.amazonaws.com/devops-u2-frontend:latest \
-          ./frontend
+          ./front_despacho
           docker push ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ env.AWS_REGION }}.amazonaws.com/devops-u2-frontend:latest
       
       - name: Forzar redespliegue en ECS
