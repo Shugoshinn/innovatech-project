@@ -4,4 +4,4 @@ frontend:
     ports:
       - "3000:80"
     environment:
-      - BACKEND_IP=${EC2_BACKEND_PRIVATE_IP
+      - BACKEND_IP=${EC2_BACKEND_PRIVATE_IP}
