@@ -22,7 +22,7 @@ services:
     depends_on:
       mysql:
         condition: service_healthy
-  backenddespachos:
+  backend-despachos:
     build: ./back-Despachos_SpringBoot
     ports:
       - "10000:8080"
