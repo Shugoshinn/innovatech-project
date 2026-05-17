@@ -1,0 +1,5 @@
+frontend:
+    build: ./front_despacho
+    image: 905418066245.dkr.ecr.us-east-1.amazonaws.com/devops-u2-frontend
+    ports:
+      - "3000:80"
