@@ -1,13 +1,9 @@
 import React from "react";
-import { FiShoppingBag, FiTruck } from "react-icons/fi";
 
-export const CardComponent = ({ title, description, buttonText, onClick, isDespacho }) => {
+export const CardComponent = ({ title, description, buttonText, onClick }) => {
   return (
-    <div className="p-10 bg-white border border-gray-200 rounded-lg shadow dark:bg-white mb-20 mr-10 h-full overflow-hidden hover:shadow-lg transition-shadow">
-      <a href="#" className="flex items-center gap-3">
-        <div className="text-3xl text-teal-500">
-          {isDespacho ? <FiTruck /> : <FiShoppingBag />}
-        </div>
+    <div className=" p-10 bg-white border border-gray-200 rounded-lg shadow dark:bg-white mb-20 mr-10 h-full overflow-hidden">
+      <a href="#">
         <h5 className="mb-1 text-lg font-bold tracking-tight text-gray-900 dark:text-gray-800">
           {title}
         </h5>

@@ -2,7 +2,6 @@ import { useState, useEffect } from "react";
 import { Modal } from "./Modal";
 import { FormDespacho } from "./FormDespacho";
 import axios from "axios";
-import { FiPlus, FiDollarSign } from "react-icons/fi";
 
 export const TableCompras = () => {
   const [ventas, setVentas] = useState([]);
@@ -37,44 +36,40 @@ export const TableCompras = () => {
     <>
       <section className="grid text-center grid-cols-12 mb-8">
         <div className="col-span-12 flex justify-center">
-          <div className="col-span-10 p-2 bg-white border border-gray-200 rounded-lg shadow dark:bg-white h-full overflow-x-auto">
-            <table className="w-full border-collapse">
+          <div className="col-span-10 p-2 bg-white border border-gray-200 rounded-lg shadow dark:bg-white h-full overflow-hidden">
+            <table className="table-fixed">
               <thead>
-                <tr className="bg-teal-500 text-white border-b">
-                  <th className="px-4 py-3 text-left font-semibold">Orden de compra</th>
-                  <th className="px-4 py-3 text-left font-semibold">Dirección</th>
-                  <th className="px-4 py-3 text-left font-semibold">Fecha de compra</th>
-                  <th className="px-4 py-3 text-right font-semibold">Valor total</th>
-                  <th className="px-4 py-3 text-center font-semibold">Acciones</th>
+                <tr className="py-10">
+                  <th className="pr-10">Orden de compra</th>
+                  <th className="pr-10">direccion</th>
+                  <th className="pr-10">fecha de compra</th>
+                  <th className="pr-10">valor total</th>
+                  <th className="pr-10"></th>
                 </tr>
               </thead>
               <tbody>
                 {ventas
                   .filter((venta) => !venta.despachoGenerado)
                   .map((venta) => (
-                    <tr key={venta.idVenta} className="border-b hover:bg-gray-50 transition-colors">
-                      <td className="px-4 py-4 text-sm text-gray-900">
+                    <tr key={venta.idVenta}>
+                      <td className="pr-10 py-10 items-center">
                         {venta.idVenta}
                       </td>
-                      <td className="px-4 py-4 text-sm text-gray-900">
+                      <td className="pr-10 py-10  items-center">
                         {venta.direccionCompra}
                       </td>
-                      <td className="px-4 py-4 text-sm text-gray-900">
+                      <td className="pr-10 py-10  items-center">
                         {venta.fechaCompra}
                       </td>
-                      <td className="px-4 py-4 text-sm text-gray-900 text-right font-semibold">
-                        <div className="inline-flex items-center gap-1">
-                          <FiDollarSign className="w-4 h-4" />
-                          {venta.valorCompra}
-                        </div>
+                      <td className="pr-10 py-10  items-center">
+                        ${venta.valorCompra}
                       </td>
-                      <td className="px-4 py-4 text-center">
+                      <td>
                         <button
                           onClick={() => handleAbrirModal(venta)}
-                          className="inline-flex items-center gap-2 px-4 py-1 bg-orange-200 rounded-lg shadow-md hover:bg-orange-300 transition-all duration-300"
+                          className="py-1 bg-orange-200 px-8 rounded-xl shadow-md hover:bg-orange-300/70 transition-all duration-300 "
                         >
-                          <FiPlus className="w-4 h-4" />
-                          <span className="text-sm font-medium">Generar</span>
+                          Generar Despacho
                         </button>
                       </td>
                     </tr>
