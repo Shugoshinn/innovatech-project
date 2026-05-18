@@ -2,7 +2,6 @@ import { useState, useEffect } from "react";
 import axios from "axios";
 import { Modal } from "./Modal";
 import { FormCierreDespacho } from "./FormCierreDespacho";
-import { FiCheck, FiClock, FiEdit2 } from "react-icons/fi";
 
 export const TableDespachos = () => {
   const [despachos, setDespachos] = useState([]);
@@ -37,55 +36,51 @@ export const TableDespachos = () => {
     <>
       <section className="grid text-center grid-cols-12 mb-8">
         <div className="col-span-12 flex justify-center">
-          <div className="col-span-10 p-2 bg-white border border-gray-200 rounded-lg shadow dark:bg-white h-full overflow-x-auto">
-            <table className="w-full border-collapse">
+          <div className="col-span-10 p-2 bg-white border border-gray-200 rounded-lg shadow dark:bg-white h-full overflow-hidden">
+            <table className="table-fixed">
               <thead>
-                <tr className="bg-teal-500 text-white border-b">
-                  <th className="px-4 py-3 text-left font-semibold">Orden de despacho</th>
-                  <th className="px-4 py-3 text-left font-semibold">Orden de compra</th>
-                  <th className="px-4 py-3 text-left font-semibold">Dirección de entrega</th>
-                  <th className="px-4 py-3 text-left font-semibold">Fecha despacho</th>
-                  <th className="px-4 py-3 text-left font-semibold">Patente Camión</th>
-                  <th className="px-4 py-3 text-center font-semibold">Entregado</th>
-                  <th className="px-4 py-3 text-center font-semibold">Intentos</th>
-                  <th className="px-4 py-3 text-center font-semibold">Acciones</th>
+                <tr className="py-10">
+                  <th className="pr-10">Orden de despacho</th>
+                  <th className="pr-10">Orden de compra</th>
+                  <th className="pr-10">Dirección de entrega</th>
+                  <th className="pr-10">Fecha despacho</th>
+                  <th className="pr-10">Patente Camión</th>
+                  <th className="pr-10">Entregado</th>
+                  <th className="pr-10">Intentos de entrega</th>
                 </tr>
               </thead>
               <tbody>
-                {despachos.map((despacho) => (
-                  <tr key={despacho.idDespacho} className="border-b hover:bg-gray-50 transition-colors">
-                    <td className="px-4 py-4 text-sm text-gray-900">{despacho.idDespacho}</td>
-                    <td className="px-4 py-4 text-sm text-gray-900">
+                {despachos
+               
+                .map((despacho) => (
+                  <tr key={despacho.idDespacho}>
+                    <td className="pr-10 py-10 items-center">{despacho.idDespacho}</td>
+                    <td className="pr-10 py-10  items-center">
                       {despacho.idCompra}
                     </td>
-                    <td className="px-4 py-4 text-sm text-gray-900">
+                    <td className="pr-10 py-10  items-center">
                       {despacho.direccionCompra}
                     </td>
-                    <td className="px-4 py-4 text-sm text-gray-900">
+                    <td className="pr-10 py-10  items-center">
                       {despacho.fechaDespacho}
                     </td>
-                    <td className="px-4 py-4 text-sm text-gray-900">
+                    <td className="pr-10 py-10  items-center">
                       {despacho.patenteCamion}
                     </td>
-                    <td className="px-4 py-4 text-center">
-                      <div className="flex justify-center">
-                        {despacho.entregado ? (
-                          <FiCheck className="w-5 h-5 text-green-500" title="Entregado" />
-                        ) : (
-                          <FiClock className="w-5 h-5 text-yellow-500" title="Pendiente" />
-                        )}
-                      </div>
+                    <td className="pr-10 py-10  items-center">
+                      {despacho.entregado
+                        ? "Despacho entregado"
+                        : "Despacho pendiente"}
                     </td>
-                    <td className="px-4 py-4 text-center text-sm font-semibold text-gray-900">
+                    <td className="pr-10 py-10  items-center">
                       {despacho.intento}
                     </td>
-                    <td className="px-4 py-4 text-center">
+                    <td>
                       <button
                         onClick={() => handleAbrirModal(despacho)}
-                        className="inline-flex items-center gap-2 px-4 py-1 bg-orange-200 rounded-lg shadow-md hover:bg-orange-300 transition-all duration-300"
-                        title="Cerrar despacho">
-                        <FiEdit2 className="w-4 h-4" />
-                        <span className="text-sm font-medium">Cerrar</span>
+                        className="py-1 bg-orange-200 px-8 rounded-xl shadow-md hover:bg-orange-300/70 transition-all duration-300 "
+                      >
+                        Cerrar despacho
                       </button>
                     </td>
                   </tr>
