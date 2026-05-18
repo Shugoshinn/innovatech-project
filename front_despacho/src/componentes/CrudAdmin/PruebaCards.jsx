@@ -9,20 +9,22 @@ export const PruebaCards = () => {
 
   return (
     <section>
-      <div className="flex justify-center">
+      <div className="flex justify-center gap-6">
         <CardComponent
-          title="Consultar Ordenes de compra 💰"
+          title="Consultar Ordenes de compra"
           description="Revisa las últimas oc realizadas para generar su despacho"
           buttonText="Consultar"
+          isDespacho={false}
           onClick={() => {
             setTablaCompras(true);
             setTablaOrdenes(false);
           }}
         />
         <CardComponent
-          title="Revisar Ordenes de despacho 🚚"
+          title="Revisar Ordenes de despacho"
           description="Consulta los despachos realizados, modifica los registros de intentos o cierra la orden"
           buttonText="Consultar"
+          isDespacho={true}
           onClick={() => {
             setTablaCompras(false);
             setTablaOrdenes(true);
