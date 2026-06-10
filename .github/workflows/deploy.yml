@@ -1,23 +1,22 @@
-name: Despliegue continuo
+name: Despliegue EKS en AWS
 
 on:
   push:
     branches:
-      - main
-
-env:
-  AWS_REGION: us-east-1
-  ECR_REGISTRY: ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.us-east-1.amazonaws.com
+      - develop-deploy
 
 jobs:
-  build-and-push:
+  deploy:
     runs-on: ubuntu-latest
+    env:
+      AWS_REGION: us-east-1
+      CLUSTER: innovatech-cluster
     steps:
-      - name: Checkout código
-        uses: actions/checkout@v3
+      - name: Checkout 
+        uses: actions/checkout@v4
       
       - name: Configurar credenciales de AWS
-        uses: aws-actions/configure-aws-credentials@v2
+        uses: aws-actions/configure-aws-credentials@v4
         with:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
@@ -25,30 +24,86 @@ jobs:
           aws-region: ${{ env.AWS_REGION }}
       
       - name: Login en ECR
-        id: login-ecr
         uses: aws-actions/amazon-ecr-login@v2
+
+      - name: Obtener el AWS ACCOUNT ID
+        run: |
+          echo "ACCOUNT_ID-$(aws sts get-caller-identity --query Account --output text)" >> $GITHUB_ENV
       
-      - name: Build y Push del backend de ventas
+      - name: Definir las URL de los ECR
         run: |
-          docker build --platform linux/amd64 \
-          -t ${{ env.ECR_REGISTRY }}/devops-u2-backend-ventas:latest \
-          ./back-Ventas_SpringBoot/Springboot-API-REST
-          docker push ${{ env.ECR_REGISTRY }}/devops-u2-backend-ventas:latest
+          echo "BACKEND_VENTAS_ECR=${ACCOUNT_ID}.dkr.ecr.${AWS_REGION}.amazonaws.com/backend_ventas" >> $GITHUB_ENV
+          echo "BACKEND_DESPACHOS_ECR=${ACCOUNT_ID}.dkr.ecr.${AWS_REGION}.amazonaws.com/backend_despachos" >> $GITHUB_ENV
+          echo "FRONTEND_ECR=${ACCOUNT_ID}.dkr.ecr.${AWS_REGION}.amazonaws.com/frontend_innovatech" >> $GITHUB_ENV
 
-      - name: Build y Push del backend de despachos
+      - name: Construir el backend de ventas
         run: |
-          docker build --platform linux/amd64 \
-          -t ${{ env.ECR_REGISTRY }}/devops-u2-backend-despachos:latest \
-          ./back-Despachos_SpringBoot/Springboot-API-REST-DESPACHO
-          docker push ${{ env.ECR_REGISTRY }}/devops-u2-backend-despachos:latest
+          docker buildx build \
+            --platform linux/amd64 \
+            -t $BACKEND_VENTAS_ECR:${GITHUB_SHA} \
+            ./back-Ventas_SpringBoot/Springboot-API-REST \
+            --load
+      - name: Push del backend de ventas
+          docker push $BACKEND_VENTAS_ECR:${GITHUB_SHA}
 
-      - name: Build y Push del frontend
+      - name: Construir del backend de despachos
         run: |
-          docker build --platform linux/amd64 \
-          -t ${{ env.ECR_REGISTRY }}/devops-u2-frontend:latest \
-          ./front_despacho
-          docker push ${{ env.ECR_REGISTRY }}/devops-u2-frontend:latest
+          docker buildx build \
+            --platform linux/amd64 \
+            -t $BACKEND_DESPACHOS_ECR:${GITHUB_SHA} \
+            ./back-Despachos_SpringBoot/Springboot-API-REST-DESPACHO \
+            --load
+      - name: Push del backend despachos
+        run: |
+          docker push $BACKEND_DESPACHOS_ECR:${GITHUB_SHA}
 
+      - name: Construir el frontend
+        run: |
+          docker buildx build \
+           --platform linux/amd64 \
+            -t $FRONTEND_ECR:${GITHUB_SHA} \
+            ./front_despacho \
+            --load
+      - name: Push del frontend
+          docker push $FRONTEND_ECR:${GITHUB_SHA}
+
+      - name: Instalar kubernet
+        uses: azure/setup-kubecrl@v4
+      
+      - name: Conectar el EKS
+        run: |
+          aws eks update-kubeconfig \
+            --region $AWS_REGION \
+            --name $CLUSTER
+      - name: Aplicar kubernet
+        run: |
+          kubectl apply -f infra/k8s/
+
+      - name: Actualizar nombre de la imagen del backend_despacho.yml
+        run: |
+          kubectl set image deployment/back-Despachos_SpringBoot/Springboot-API-REST-DESPACHO \
+          backend=$BACKEND_DESPACHOS_ECR:${GITHUB_SHA}
+
+      - name: Actualizar nombre de la imagen del backend_venta.yml
+        run: |
+          kubectl set image deployment/backend \
+          backend=$BACKEND_VENTAS_ECR:${GITHUB_SHA}
+
+      - name: Actualizar nombre de la imagen del frontend.yml
+        run: |
+          kubectl set image deployment/frontend \
+          frontend=$FRONTEND_ECR:${GITHUB_SHA}
+      
+      - name: Esperar la recarga del backend
+        run: |
+          kubectl rollout status deployment/backend
+      - name: Esperar la recarga del frontend
+        run: |
+          kubectl rollout status deployment/frontend
+
+      - name: Obtener le IP del frontend
+        run: |
+          kubectl get service frontend -o jsonpath='{.status.loadBalancer.ingress[0].hostname}'    
   # Despliegue en EC2 Backend (¡Haciendo salto a través del Frontend!)
   deploy-backend:
     needs: build-and-push
