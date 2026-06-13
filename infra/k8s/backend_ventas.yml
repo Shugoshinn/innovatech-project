@@ -2,20 +2,20 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: backend-despacho
+  name: backend-ventas
 spec:
   replicas: 2
   selector:
     matchLabels:
-      app: backend-despacho
+      app: backend-ventas
   template:
     metadata:
       labels:
-        app: backend-despacho
+        app: backend-ventas
     spec:
       containers:
-        - name: backend-despacho
-          image: <AWS_ACCOUNT_ID>.dkr.ecr.<REGION>.amazonaws.com/innovatech-backend-despacho:latest
+        - name: backend-ventas
+          image: <AWS_ACCOUNT_ID>.dkr.ecr.<REGION>.amazonaws.com/innovatech-backend-ventas:latest
           imagePullPolicy: Always
           ports:
             - containerPort: 8080
@@ -32,10 +32,10 @@ spec:
 apiVersion: v1
 kind: Service
 metadata:
-  name: backend-despacho
+  name: backend-ventas
 spec:
   selector:
-    app: backend-despacho
+    app: backend-ventas
   ports:
     - port: 8080
       targetPort: 8080
