@@ -26,6 +26,7 @@ services:
         condition: service_healthy
     volumes:
       - db_data:/var/lib/mysql
+      
   backend-despachos:
     image: 905418066245.dkr.ecr.us-east-1.amazonaws.com/devops-u2-backend-despachos
     ports:

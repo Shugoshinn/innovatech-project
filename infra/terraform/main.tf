@@ -1,24 +1,11 @@
-terraform {
-  required_providers {
-    aws={
-        source = "hashicorp/aws"
-        version = "~> 5.0"
-    }
-  }
-}
+# Este archivo no se necesita - toda la configuración está en archivos específicos
+# - provider.tf: Terraform + AWS provider
+# - vpc.tf: VPC + Subnets + IGW + Route Tables
+# - security_groups.tf: Security Groups para EKS
+# - eks.tf: EKS Cluster + Node Group
+# - ecr.tf: ECR Repositories
+# - variables.tf: Variables
+# - outputs.tf: Outputs
 
-provider "aws" {
-  region = var.aws_region
-}
-
-#ECR
-resource "aws_ecr_repository" "backend" {
-  name = "${var.project_name}-backend"
-  force_delete = true
-}
-resource "aws_ecr_repository" "frontend" {
-    name = "${var.project_name}-frontend"
-    force_delete = true
-}
 
 
