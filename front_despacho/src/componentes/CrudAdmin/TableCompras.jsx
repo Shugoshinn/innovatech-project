@@ -14,7 +14,11 @@ export const TableCompras = () => {
   }
     }).then((response) => {
       console.log(response.data);
-      setVentas(response.data);
+      if (Array.isArray(response.data)) {
+          setVentas(response.data);
+        } else {
+          console.error("El servidor no devolvió una lista válida:", response.data);
+        }
     });
   };
   // Llamada a la función para obtener los datos cuando el componente se monta

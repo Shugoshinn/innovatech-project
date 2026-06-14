@@ -19,7 +19,9 @@ spec:
           ports:
             - containerPort: 80
           env:
-            - name: BACKEND_IP
+            - name: BACKEND_IP_VENTAS
+              value: "backend-ventas"
+            - name: BACKEND_IP_DESPACHO
               value: "backend-despacho"
 ---
 apiVersion: v1 

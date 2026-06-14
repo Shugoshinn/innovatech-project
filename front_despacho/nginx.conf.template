@@ -8,11 +8,13 @@ server {
         try_files $uri $uri/ /index.html;
     }
 
-    location /api/ventas/ {
-        proxy_pass http://${BACKEND_IP}:8080/;
+    # Redirección dinámica para Ventas
+    location /api/v1/ventas {
+        proxy_pass http://${BACKEND_IP_VENTAS}:8080/api/v1/ventas;
     }
 
-    location /api/despachos/ {
-        proxy_pass http://${BACKEND_IP}:8081/;
+    # Redirección dinámica para Despachos
+    location /api/v1/despachos {
+        proxy_pass http://${BACKEND_IP_DESPACHO}:8080/api/v1/despachos;
     }
 }

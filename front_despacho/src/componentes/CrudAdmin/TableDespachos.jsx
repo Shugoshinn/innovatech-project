@@ -16,7 +16,12 @@ export const TableDespachos = () => {
       })
       .then((response) => {
         console.log(response.data);
-        setDespachos(response.data);
+        // Solo guardamos los datos si el servidor de verdad nos respondió con una lista (Array)
+        if (Array.isArray(response.data)) {
+          setDespachos(response.data);
+        } else {
+          console.error("El servidor no devolvió una lista válida:", response.data);
+        }
       });
   };
   // Llamada a la función para obtener los datos cuando el componente se monta
