@@ -2,7 +2,7 @@
 resource "aws_eks_cluster" "eks" {
   name     = var.cluster_name
   role_arn = data.aws_iam_role.labrole.arn
-  version  = "1.28"
+  version  = "1.29"
 
   vpc_config {
     subnet_ids              = [aws_subnet.eks_subnet_1.id, aws_subnet.eks_subnet_2.id]
@@ -21,6 +21,7 @@ resource "aws_eks_node_group" "workers" {
   node_group_name = "${var.cluster_name}-workers"
   node_role_arn   = data.aws_iam_role.labrole.arn
   subnet_ids      = [aws_subnet.eks_subnet_1.id, aws_subnet.eks_subnet_2.id]
+  ami_type = "AL2023_x86_64_STANDARD"
 
   scaling_config {
     desired_size = var.desired_size
