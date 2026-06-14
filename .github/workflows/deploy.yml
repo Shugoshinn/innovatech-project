@@ -28,7 +28,7 @@ jobs:
 
       - name: Obtener el AWS ACCOUNT ID
         run: |
-          echo "ACCOUNT_ID-$(aws sts get-caller-identity --query Account --output text)" >> $GITHUB_ENV
+          echo "ACCOUNT_ID=$(aws sts get-caller-identity --query Account --output text)" >> $GITHUB_ENV
       
       - name: Definir las URL de los ECR
         run: |
@@ -43,7 +43,9 @@ jobs:
             -t $BACKEND_VENTAS_ECR:${GITHUB_SHA} \
             ./back-Ventas_SpringBoot/Springboot-API-REST \
             --load
+
       - name: Push del backend de ventas
+        run: |
           docker push $BACKEND_VENTAS_ECR:${GITHUB_SHA}
 
       - name: Construir del backend de despachos
@@ -53,6 +55,7 @@ jobs:
             -t $BACKEND_DESPACHOS_ECR:${GITHUB_SHA} \
             ./back-Despachos_SpringBoot/Springboot-API-REST-DESPACHO \
             --load
+
       - name: Push del backend despachos
         run: |
           docker push $BACKEND_DESPACHOS_ECR:${GITHUB_SHA}
@@ -64,43 +67,45 @@ jobs:
             -t $FRONTEND_ECR:${GITHUB_SHA} \
             ./front_despacho \
             --load
+
       - name: Push del frontend
+        run: |
           docker push $FRONTEND_ECR:${GITHUB_SHA}
 
-      - name: Instalar kubernet
-        uses: azure/setup-kubecrl@v4
+      - name: Instalar kubectl
+        uses: azure/setup-kubectl@v4
       
       - name: Conectar el EKS
         run: |
           aws eks update-kubeconfig \
             --region $AWS_REGION \
             --name $CLUSTER
-      - name: Aplicar kubernet
+
+      - name: Aplicar kubernetes
         run: |
           kubectl apply -f infra/k8s/
 
-      - name: Actualizar nombre de la imagen del backend_despacho.yml
+      - name: Actualizar nombre de la imagen del backend_despacho
         run: |
-          kubectl set image deployment/back-Despachos_SpringBoot/Springboot-API-REST-DESPACHO \
-          backend=$BACKEND_DESPACHOS_ECR:${GITHUB_SHA}
+          kubectl set image deployment/backend-despacho \
+          backend-despacho=$BACKEND_DESPACHOS_ECR:${GITHUB_SHA}
 
-      - name: Actualizar nombre de la imagen del backend_venta.yml
+      - name: Actualizar nombre de la imagen del backend_venta
         run: |
-          kubectl set image deployment/backend \
-          backend=$BACKEND_VENTAS_ECR:${GITHUB_SHA}
+          kubectl set image deployment/backend-ventas \
+          backend-ventas=$BACKEND_VENTAS_ECR:${GITHUB_SHA}
 
-      - name: Actualizar nombre de la imagen del frontend.yml
+      - name: Actualizar nombre de la imagen del frontend
         run: |
           kubectl set image deployment/frontend \
           frontend=$FRONTEND_ECR:${GITHUB_SHA}
       
-      - name: Esperar la recarga del backend
+      - name: Esperar la recarga de los servicios
         run: |
-          kubectl rollout status deployment/backend
-      - name: Esperar la recarga del frontend
-        run: |
+          kubectl rollout status deployment/backend-despacho
+          kubectl rollout status deployment/backend-ventas
           kubectl rollout status deployment/frontend
 
-      - name: Obtener le IP del frontend
+      - name: Obtener la IP del frontend
         run: |
           kubectl get service frontend -o jsonpath='{.status.loadBalancer.ingress[0].hostname}'
