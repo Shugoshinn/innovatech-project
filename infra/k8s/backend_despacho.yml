@@ -25,7 +25,10 @@ spec:
             - name: SPRING_DATASOURCE_USERNAME
               value: root
             - name: SPRING_DATASOURCE_PASSWORD
-              value: root
+              valueFrom: # <- CAMBIO A SECRETO
+                secretKeyRef:
+                  name: db-credentials
+                  key: mysql-root-password
 
 ---
 #Service

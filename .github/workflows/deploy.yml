@@ -35,42 +35,47 @@ jobs:
           echo "BACKEND_VENTAS_ECR=${ACCOUNT_ID}.dkr.ecr.${AWS_REGION}.amazonaws.com/innovatech-backend-ventas" >> $GITHUB_ENV
           echo "BACKEND_DESPACHOS_ECR=${ACCOUNT_ID}.dkr.ecr.${AWS_REGION}.amazonaws.com/innovatech-backend-despacho" >> $GITHUB_ENV
           echo "FRONTEND_ECR=${ACCOUNT_ID}.dkr.ecr.${AWS_REGION}.amazonaws.com/innovatech-frontend" >> $GITHUB_ENV
+      
+      - name: Configurar JDK 21 para Tests
+        uses: actions/setup-java@v4
+        with:
+          java-version: '21'
+          distribution: 'temurin'
+          cache: 'maven'
+          
+      - name: Ejecutar Tests Backend Ventas
+        run: |
+          cd back-Ventas_SpringBoot/Springboot-API-REST
+          mvn clean test
 
-      - name: Construir el backend de ventas
+      - name: Ejecutar Tests Backend Despacho
+        run: |
+          cd back-Despachos_SpringBoot/Springboot-API-REST-DESPACHO
+          mvn clean test
+          
+      - name: Construir y subir el backend de ventas
         run: |
           docker buildx build \
             --platform linux/amd64 \
             -t $BACKEND_VENTAS_ECR:${GITHUB_SHA} \
             ./back-Ventas_SpringBoot/Springboot-API-REST \
-            --load
+            --push
 
-      - name: Push del backend de ventas
-        run: |
-          docker push $BACKEND_VENTAS_ECR:${GITHUB_SHA}
-
-      - name: Construir del backend de despachos
+      - name: Construir y subir el backend de despachos
         run: |
           docker buildx build \
             --platform linux/amd64 \
             -t $BACKEND_DESPACHOS_ECR:${GITHUB_SHA} \
             ./back-Despachos_SpringBoot/Springboot-API-REST-DESPACHO \
-            --load
+            --push
 
-      - name: Push del backend despachos
-        run: |
-          docker push $BACKEND_DESPACHOS_ECR:${GITHUB_SHA}
-
-      - name: Construir el frontend
+      - name: Construir y subir el frontend
         run: |
           docker buildx build \
            --platform linux/amd64 \
             -t $FRONTEND_ECR:${GITHUB_SHA} \
             ./front_despacho \
-            --load
-
-      - name: Push del frontend
-        run: |
-          docker push $FRONTEND_ECR:${GITHUB_SHA}
+            --push
 
       - name: Instalar kubectl
         uses: azure/setup-kubectl@v4
@@ -81,8 +86,12 @@ jobs:
             --region $AWS_REGION \
             --name $CLUSTER
 
-      - name: Aplicar kubernetes
+      - name: Crear Secreto de BD y Aplicar kubernetes
         run: |
+          kubectl create secret generic db-credentials \
+            --from-literal=mysql-root-password=${{ secrets.DB_PASSWORD }} \
+            --dry-run=client -o yaml | kubectl apply -f -
+
           kubectl apply -f infra/k8s/
 
       - name: Actualizar nombre de la imagen del backend_despacho
