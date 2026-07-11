@@ -51,5 +51,8 @@ services:
       environment:
         - BACKEND_IP_VENTAS=backend-ventas
         - BACKEND_IP_DESPACHO=backend-despachos
+      depends_on:
+        - backend-ventas
+        - backend-despachos
 volumes:
   db_data:
