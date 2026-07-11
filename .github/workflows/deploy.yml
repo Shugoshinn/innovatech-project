@@ -39,12 +39,9 @@ jobs:
       - name: Login en ECR
         uses: aws-actions/amazon-ecr-login@v2
 
-      - name: Obtener el AWS ACCOUNT ID
+      - name: Obtener AWS ACCOUNT ID y definir URLs
         run: |
-          echo "ACCOUNT_ID=$(aws sts get-caller-identity --query Account --output text)" >> $GITHUB_ENV
-      
-      - name: Definir las URL de los ECR
-        run: |
+          ACCOUNT_ID=$(aws sts get-caller-identity --query Account --output text)
           echo "BACKEND_VENTAS_ECR=${ACCOUNT_ID}.dkr.ecr.${AWS_REGION}.amazonaws.com/innovatech-backend-ventas" >> $GITHUB_ENV
           echo "BACKEND_DESPACHOS_ECR=${ACCOUNT_ID}.dkr.ecr.${AWS_REGION}.amazonaws.com/innovatech-backend-despacho" >> $GITHUB_ENV
           echo "FRONTEND_ECR=${ACCOUNT_ID}.dkr.ecr.${AWS_REGION}.amazonaws.com/innovatech-frontend" >> $GITHUB_ENV
@@ -56,7 +53,7 @@ jobs:
           distribution: 'temurin'
           cache: 'maven'
           
-      - name: Ejecutar Tests Backend Ventas
+      - name: Ejecutar Tests de Microservicios
         env: 
           DB_ENDPOINT: 127.0.0.1
           DB_PORT: 3306
@@ -65,80 +62,38 @@ jobs:
           DB_PASSWORD: ${{ secrets.DB_PASSWORD }}
         run: |
           cd back-Ventas_SpringBoot/Springboot-API-REST
-          mvn clean test
-
-      - name: Ejecutar Tests Backend Despacho
-        env: 
-          DB_ENDPOINT: 127.0.0.1
-          DB_PORT: 3306
-          DB_NAME: innovatech_db
-          DB_USERNAME: root
-          DB_PASSWORD: ${{ secrets.DB_PASSWORD }}
-        run: |
-          cd back-Despachos_SpringBoot/Springboot-API-REST-DESPACHO
-          mvn clean test
+          mvn test -T 1C
+          cd ../../back-Despachos_SpringBoot/Springboot-API-REST-DESPACHO
+          mvn test -T 1C
           
-      - name: Construir y subir el backend de ventas
+      - name: Construir y Subir Imágenes a ECR
         run: |
-          docker buildx build \
-            --platform linux/amd64 \
-            -t $BACKEND_VENTAS_ECR:${GITHUB_SHA} \
-            ./back-Ventas_SpringBoot/Springboot-API-REST \
-            --push
-
-      - name: Construir y subir el backend de despachos
-        run: |
-          docker buildx build \
-            --platform linux/amd64 \
-            -t $BACKEND_DESPACHOS_ECR:${GITHUB_SHA} \
-            ./back-Despachos_SpringBoot/Springboot-API-REST-DESPACHO \
-            --push
-
-      - name: Construir y subir el frontend
-        run: |
-          docker buildx build \
-           --platform linux/amd64 \
-            -t $FRONTEND_ECR:${GITHUB_SHA} \
-            ./front_despacho \
-            --push
+          docker buildx build --platform linux/amd64 -t $BACKEND_VENTAS_ECR:${GITHUB_SHA} ./back-Ventas_SpringBoot/Springboot-API-REST --push
+          docker buildx build --platform linux/amd64 -t $BACKEND_DESPACHOS_ECR:${GITHUB_SHA} ./back-Despachos_SpringBoot/Springboot-API-REST-DESPACHO --push
+          docker buildx build --platform linux/amd64 -t $FRONTEND_ECR:${GITHUB_SHA} ./front_despacho --push
 
       - name: Instalar kubectl
         uses: azure/setup-kubectl@v4
       
       - name: Conectar el EKS
         run: |
-          aws eks update-kubeconfig \
-            --region $AWS_REGION \
-            --name $CLUSTER
+          aws eks update-kubeconfig --region $AWS_REGION --name $CLUSTER
 
-      - name: Crear Secreto de BD y Aplicar kubernetes
+      - name: Desplegar Infraestructura y Actualizar Imágenes
         run: |
-          kubectl create secret generic db-credentials \
-            --from-literal=mysql-root-password=${{ secrets.DB_PASSWORD }} \
-            --dry-run=client -o yaml | kubectl apply -f -
-
+          kubectl create secret generic db-credentials --from-literal=mysql-root-password=${{ secrets.DB_PASSWORD }} --dry-run=client -o yaml | kubectl apply -f -
           kubectl apply -f infra/k8s/
-
-      - name: Actualizar nombre de la imagen del backend_despacho
-        run: |
-          kubectl set image deployment/backend-despacho \
-          backend-despacho=$BACKEND_DESPACHOS_ECR:${GITHUB_SHA}
-
-      - name: Actualizar nombre de la imagen del backend_venta
-        run: |
-          kubectl set image deployment/backend-ventas \
-          backend-ventas=$BACKEND_VENTAS_ECR:${GITHUB_SHA}
-
-      - name: Actualizar nombre de la imagen del frontend
-        run: |
-          kubectl set image deployment/frontend \
-          frontend=$FRONTEND_ECR:${GITHUB_SHA}
+          
+          kubectl set image deployment/backend-despacho backend-despacho=$BACKEND_DESPACHOS_ECR:${GITHUB_SHA}
+          kubectl set image deployment/backend-ventas backend-ventas=$BACKEND_VENTAS_ECR:${GITHUB_SHA}
+          kubectl set image deployment/frontend frontend=$FRONTEND_ECR:${GITHUB_SHA}
       
-      - name: Esperar la recarga de los servicios
+      - name: Esperar recarga de los servicios en paralelo
         run: |
-          kubectl rollout status deployment/backend-despacho
-          kubectl rollout status deployment/backend-ventas
-          kubectl rollout status deployment/frontend
+          kubectl rollout status deployment/backend-despacho &
+          kubectl rollout status deployment/backend-ventas &
+          kubectl rollout status deployment/frontend &
+          wait
 
       - name: Obtener la IP del frontend
         run: |
