@@ -37,7 +37,7 @@ spec:
                   key: mysql-root-password
               value: root
             - name: MYSQL_DATABASE
-              value: innavatech_db
+              value: innovatech_db
 
 ---
 apiVersion: v1

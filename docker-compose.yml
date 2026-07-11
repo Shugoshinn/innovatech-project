@@ -13,8 +13,11 @@ services:
       interval: 10s
       timeout: 5s
       retries: 5
+
   backend-ventas:
-    image: 905418066245.dkr.ecr.us-east-1.amazonaws.com/devops-u2-backend-ventas
+    build: 
+      context: ./back-Ventas_SpringBoot/Springboot-API-REST
+    image: local-backend-ventas:latest
     ports:
       - "8080:8080"
     environment:
@@ -24,11 +27,11 @@ services:
     depends_on:
       mysql:
         condition: service_healthy
-    volumes:
-      - db_data:/var/lib/mysql
       
   backend-despachos:
-    image: 905418066245.dkr.ecr.us-east-1.amazonaws.com/devops-u2-backend-despachos
+    build: 
+      context: ./back-Despachos_SpringBoot/Springboot-API-REST-DESPACHO
+    image: local-backend-despachos:latest
     ports:
       - "8081:8080"
     environment:
@@ -38,13 +41,15 @@ services:
     depends_on:
       mysql:
         condition: service_healthy
-    volumes:
-      - db_data:/var/lib/mysql
+  
   frontend:
-      image: 905418066245.dkr.ecr.us-east-1.amazonaws.com/devops-u2-frontend:latest
+      build: 
+        context: ./front_despacho
+      image: local-frontend:latest
       ports:
         - "80:80"
       environment:
-        - BACKEND_IP=${EC2_BACKEND_PRIVATE_IP}
+        - BACKEND_IP_VENTAS=backend-ventas
+        - BACKEND_IP_DESPACHO=backend-despachos
 volumes:
   db_data:
