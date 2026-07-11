@@ -8,6 +8,19 @@ on:
 jobs:
   deploy:
     runs-on: ubuntu-latest
+    services:
+      mysql-test:
+        image: mysql:8.0
+        env:
+          MYSQL_ROOT_PASSWORD: ${{ secrets.DB_PASSWORD }}
+          MYSQL_DATABASE: innovatech_db
+        ports:
+          - 3306:3306
+        options: >-
+          --health-cmd="mysqladmin ping"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=3
     env:
       AWS_REGION: us-east-1
       CLUSTER: innovatech-cluster
@@ -44,11 +57,23 @@ jobs:
           cache: 'maven'
           
       - name: Ejecutar Tests Backend Ventas
+        env: 
+          DB_ENDPOINT: 127.0.0.1
+          DB_PORT: 3306
+          DB_NAME: innovatech_db
+          DB_USERNAME: root
+          DB_PASSWORD: ${{ secrets.DB_PASSWORD }}
         run: |
           cd back-Ventas_SpringBoot/Springboot-API-REST
           mvn clean test
 
       - name: Ejecutar Tests Backend Despacho
+        env: 
+          DB_ENDPOINT: 127.0.0.1
+          DB_PORT: 3306
+          DB_NAME: innovatech_db
+          DB_USERNAME: root
+          DB_PASSWORD: ${{ secrets.DB_PASSWORD }}
         run: |
           cd back-Despachos_SpringBoot/Springboot-API-REST-DESPACHO
           mvn clean test
