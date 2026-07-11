@@ -35,7 +35,6 @@ spec:
                 secretKeyRef:
                   name: db-credentials
                   key: mysql-root-password
-              value: root
             - name: MYSQL_DATABASE
               value: innovatech_db
 
