@@ -27,13 +27,16 @@ La solución está organizada de forma lineal y clara para permitir la gestión 
 │   ├── default.conf.template   # Configuración de Nginx para enrutamiento interno
 │   ├── Dockerfile              # Dockerfile de la capa de presentación (React + Nginx)
 │   └── ... 
-└── infra/                      # Infraestructura como Código (IaC)
-    ├── terraform/              # Archivos .tf para VPC, EKS, RDS y Security Groups
-    └── k8s/                    # Manifiestos de Kubernetes (Deployments, Services, HPA)
-        ├── frontend.yml
-        ├── backend_ventas.yml
-        ├── backend_despacho.yml
-        └── mysql.yml
+├── infra/                      # Infraestructura como Código (IaC)
+│   ├── terraform/              # Archivos .tf para VPC, EKS y Security Groups
+│   └── k8s/                    # Manifiestos de Kubernetes (Deployments, Services, HPA)
+│       ├── frontend.yml
+│       ├── backend_ventas.yml
+│       ├── backend_despacho.yml
+│       └── mysql.yml
+└── docker-compose.yml          # Orquestación para el entorno de desarrollo local
+
+```
 
 ---
 
@@ -42,10 +45,10 @@ La solución está organizada de forma lineal y clara para permitir la gestión 
 El ecosistema de la plataforma está construido utilizando herramientas líderes en la industria para garantizar escalabilidad y tolerancia a fallos:
 
 * **Frontend:** React.js, Vite, Axios.
-* **Backend Microservicios:** Java 17, Spring Boot, Hibernate (JPA), Maven.
+* **Backend Microservicios:** Java 21, Spring Boot, Hibernate (JPA), Maven.
 * **Base de Datos:** MySQL 8.0 (optimizado con HikariCP para el pool de conexiones).
 * **Infraestructura Cloud (AWS):** EKS (Elastic Kubernetes Service), EC2 (Nodos worker), ECR (Elastic Container Registry), ALB (Application Load Balancer), VPC.
-* **DevOps & IaC:** Docker, Terraform, GitHub Actions, Nginx (como Reverse Proxy / API Gateway interno).
+* **DevOps & IaC:** Docker, Docker Compose, Terraform, GitHub Actions, Nginx (como Reverse Proxy / API Gateway interno).
 
 ---
 
@@ -53,7 +56,7 @@ El ecosistema de la plataforma está construido utilizando herramientas líderes
 
 El proyecto cuenta con un pipeline completamente automatizado mediante **GitHub Actions** que asegura despliegues ágiles y sin tiempo de inactividad (*Zero-Downtime*). El flujo se activa con cada `push` al repositorio y consta de tres etapas críticas:
 
-1. **Build:** Compilación del código fuente de los microservicios y el frontend, y empaquetado en imágenes Docker aisladas.
+1. **Build:** Compilación del código fuente de los microservicios (usando JDK 21) y el frontend, y empaquetado en imágenes Docker aisladas.
 2. **Push:** Autenticación segura mediante roles/credenciales y subida de las nuevas versiones a repositorios privados en **Amazon ECR**.
 3. **Deploy:** Ejecución automática de comandos `kubectl` para actualizar los *Deployments* en el clúster de **Amazon EKS**. Se utiliza la estrategia de *Rolling Update*, donde Kubernetes verifica la salud del nuevo contenedor antes de apagar el antiguo, garantizando la continuidad operativa.
 
@@ -65,7 +68,7 @@ Sigue estos pasos para aprovisionar la infraestructura desde cero y desplegar lo
 
 ### Requisitos Previos
 
-Asegúrate de tener instalados: `aws-cli`, `terraform`, `kubectl` y `git`.
+Asegúrate de tener instalados: `aws-cli`, `terraform`, `kubectl`, `docker` y `git`.
 Configura tus credenciales de acceso a AWS en tu terminal local:
 
 ```bash
@@ -118,10 +121,14 @@ Gracias a la implementación de **Data Seeding** automatizado, no es necesario r
 Para ver la aplicación funcionando:
 
 1. Obtén la URL pública de tu balanceador de carga:
+
 ```bash
 kubectl get svc frontend
 
 ```
 
-
 2. Copia la URL de la columna `EXTERNAL-IP`, pégala en tu navegador y haz clic en el botón de **Consultar** para ver el cruce de datos en tiempo real.
+
+```
+
+```
